@@ -294,6 +294,49 @@ select option { background: var(--surface2); }
   align-items: center;
   margin-bottom: 10px;
 }
+
+.docs-section { margin-top: 32px; }
+.docs-label {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 2px; color: var(--muted);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.docs-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.docs-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.docs-steps { padding: 4px 0; }
+.docs-step {
+  display: flex; gap: 16px; padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.docs-step:last-child { border-bottom: none; }
+.step-num {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
+  color: var(--accent); font-family: var(--mono); font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-title { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.step-desc code {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 1px 5px; border-radius: 3px; color: var(--accent);
+}
+.docs-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 20px;
+  font-family: var(--mono); font-size: 12px;
+  color: var(--accent); text-decoration: none;
+  border-top: 1px solid var(--border);
+  background: rgba(0,212,255,0.03);
+  transition: background .15s;
+}
+.docs-link:hover { background: rgba(0,212,255,0.07); }
+.docs-link svg { flex-shrink: 0; opacity: .7; }
 </style>
 </head>
 <body>
@@ -386,6 +429,47 @@ select option { background: var(--surface2); }
     </div>
 
   </div>
+
+  <div class="docs-section">
+    <div class="docs-label">Как тестировать DPoP</div>
+    <div class="docs-card">
+      <div class="docs-steps">
+        <div class="docs-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Получение токена (/token)</div>
+            <div class="step-desc">Сгенерируй proof без Access Token. Вставь в заголовок <code>DPoP</code> запроса к <code>/token</code>. В ответе получишь <code>access_token</code> с <code>token_type: DPoP</code>.</div>
+          </div>
+        </div>
+        <div class="docs-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Вызов защищённого ресурса</div>
+            <div class="step-desc">Вставь полученный <code>access_token</code> в поле выше. Сгенерируй новый proof — он будет содержать <code>ath</code>. Используй <code>Authorization: DPoP &lt;token&gt;</code> + заголовок <code>DPoP: &lt;proof&gt;</code>.</div>
+          </div>
+        </div>
+        <div class="docs-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Обновление токена (refresh)</div>
+            <div class="step-desc">Генерируй proof той же ключевой парой что использовалась при логине. <code>htu</code> — URL /token эндпоинта, <code>ath</code> не нужен.</div>
+          </div>
+        </div>
+        <div class="docs-step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Одна ключевая пара на сессию</div>
+            <div class="step-desc">Не сбрасывай ключ пока не завершишь сессию — access token привязан к публичному ключу через <code>cnf.jkt</code>. Смена ключа = невалидный токен.</div>
+          </div>
+        </div>
+      </div>
+      <a class="docs-link" href="https://confluence.maib.md/spaces/DOM/pages/158803324/How+to+Test+DPoP+Validation" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        How to Test DPoP Validation — Confluence
+      </a>
+    </div>
+  </div>
+
 </div>
 
 <script>
