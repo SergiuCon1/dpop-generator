@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DPoP Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0c10;
+  --surface: #111318;
+  --surface2: #181b22;
+  --border: #1e2330;
+  --border2: #252c3d;
+  --accent: #00d4ff;
+  --accent2: #0099cc;
+  --success: #00ff9d;
+  --warning: #ffb800;
+  --error: #ff4d6d;
+  --text: #e8eaf0;
+  --muted: #5a6070;
+  --muted2: #3a4050;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 40px 20px;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(0,212,255,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 10% 80%, rgba(0,153,204,0.03) 0%, transparent 50%);
+}
+
+.container { max-width: 800px; margin: 0 auto; }
+
+header {
+  margin-bottom: 40px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.logo {
+  width: 42px; height: 42px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.logo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,212,255,0.1), transparent);
+}
+.logo svg { position: relative; z-index: 1; }
+
+.header-text h1 {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+.header-text p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+  font-family: var(--mono);
+}
+
+.grid { display: grid; gap: 12px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.2), transparent);
+}
+
+.card-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-label::before {
+  content: '';
+  width: 3px; height: 3px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--accent);
+}
+
+.field { margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+
+label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+input, select, textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  resize: vertical;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 2px rgba(0,212,255,0.08);
+}
+select option { background: var(--surface2); }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.btn:hover::before { opacity: 0.08; }
+.btn:hover { box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+.btn:active { transform: scale(0.99); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn span { position: relative; z-index: 1; }
+
+.btn-sm {
+  border-color: var(--border2);
+  color: var(--muted);
+  font-size: 11px;
+  padding: 8px;
+}
+.btn-sm::before { background: var(--text); }
+.btn-sm:hover { color: var(--text); border-color: var(--muted2); }
+
+.output-wrap { position: relative; }
+
+.output {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  word-break: break-all;
+  line-height: 1.8;
+  min-height: 60px;
+  color: var(--accent);
+}
+.output.empty { color: var(--muted); font-style: italic; }
+.output.success { border-color: rgba(0,255,157,0.2); }
+
+.copy-btn {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 4px 10px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.copy-btn:hover { border-color: var(--accent2); color: var(--accent); }
+.copy-btn.copied { border-color: var(--success); color: var(--success); }
+
+.decoded-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+
+.decoded-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.decoded-header-bar {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.decoded-body {
+  padding: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text);
+}
+
+.keypair-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--muted2);
+  flex-shrink: 0;
+  transition: all .3s;
+}
+.dot.active {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.tag-ok { background: rgba(0,255,157,0.1); color: var(--success); border: 1px solid rgba(0,255,157,0.2); }
+.tag-warn { background: rgba(255,184,0,0.1); color: var(--warning); border: 1px solid rgba(255,184,0,0.2); }
+
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M11 2L3 7v8l8 5 8-5V7L11 2z" stroke="#00d4ff" stroke-width="1.2" fill="none"/>
+        <circle cx="11" cy="11" r="2.5" fill="#00d4ff" opacity="0.8"/>
+        <path d="M11 8.5V5M11 17v-2.5" stroke="#00d4ff" stroke-width="1" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>DPoP Proof Generator</h1>
+      <p>EC P-256 · ES256 · RFC 9449</p>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-label">Конфигурация</div>
+      <div class="row">
+        <div class="field">
+          <label>HTTP метод (htm)</label>
+          <select id="method">
+            <option value="POST" selected>POST</option>
+            <option value="GET">GET</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+            <option value="PATCH">PATCH</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Алгоритм</label>
+          <select disabled>
+            <option>ES256 (EC P-256)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>URL эндпоинта (htu)</label>
+        <input id="htu" type="text" value="http://svc-client-auth-service.mobile-banking-core.svc.cluster.local/connect/token">
+      </div>
+      <div class="field">
+        <label>Access Token (ath) — оставь пустым для /token эндпоинта</label>
+        <textarea id="access-token" rows="2" placeholder="eyJ... (опционально — только для resource server)"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="meta-row">
+        <div class="card-label" style="margin:0">Ключевая пара</div>
+        <span class="tag" id="key-tag" style="display:none"></span>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn btn-sm" onclick="generateNewKeyPair()"><span>⟳ Новая пара</span></button>
+        <button class="btn btn-sm" onclick="clearKeyPair()"><span>✕ Очистить</span></button>
+      </div>
+      <div class="keypair-status">
+        <div class="dot" id="key-dot"></div>
+        <span id="key-status-text">Ключи не сгенерированы — создадутся автоматически</span>
+      </div>
+    </div>
+
+    <button class="btn" id="gen-btn" onclick="generate()"><span id="btn-text">Сгенерировать DPoP Proof</span></button>
+
+    <div class="card" id="result-card" style="display:none">
+      <div class="meta-row">
+        <div class="card-label" style="margin:0">DPoP Proof JWT</div>
+        <span class="tag tag-ok">✓ готов</span>
+      </div>
+      <div class="output-wrap">
+        <div class="output success" id="proof-output"></div>
+        <button class="copy-btn" id="copy-btn" onclick="copyProof()">копировать</button>
+      </div>
+      <div class="divider"></div>
+      <div class="card-label">Декодированный JWT</div>
+      <div class="decoded-grid">
+        <div class="decoded-block">
+          <div class="decoded-header-bar">Header</div>
+          <div class="decoded-body" id="decoded-header"></div>
+        </div>
+        <div class="decoded-block">
+          <div class="decoded-header-bar">Payload</div>
+          <div class="decoded-body" id="decoded-payload"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let keyPair = null;
+let currentProof = null;
+
+function base64url(buffer) {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+function uuid() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}
+
+function stripQuery(url) {
+  try {
+    const u = new URL(url);
+    return u.origin + u.pathname;
+  } catch {
+    return url.split('?')[0].split('#')[0];
+  }
+}
+
+async function hashToken(token) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+  return base64url(buf);
+}
+
+async function generateNewKeyPair() {
+  keyPair = await crypto.subtle.generateKey(
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    true,
+    ['sign', 'verify']
+  );
+  updateKeyStatus(true, 'EC P-256 — пара активна для текущей сессии');
+}
+
+function clearKeyPair() {
+  keyPair = null;
+  updateKeyStatus(false, 'Ключи очищены — создадутся при следующей генерации');
+}
+
+function updateKeyStatus(active, text) {
+  document.getElementById('key-dot').className = 'dot' + (active ? ' active' : '');
+  document.getElementById('key-status-text').textContent = text;
+  const tag = document.getElementById('key-tag');
+  if (active) {
+    tag.style.display = 'inline-flex';
+    tag.className = 'tag tag-ok';
+    tag.textContent = 'EC P-256';
+  } else {
+    tag.style.display = 'none';
+  }
+}
+
+async function generate() {
+  const htu = document.getElementById('htu').value.trim();
+  const method = document.getElementById('method').value;
+  const accessTokenVal = document.getElementById('access-token').value.trim();
+
+  if (!htu) { alert('Укажи URL эндпоинта'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  const btnText = document.getElementById('btn-text');
+  btn.disabled = true;
+  btnText.textContent = 'Генерирую...';
+
+  try {
+    // Генерируем ключи если нет (как в generate-dpop.js — getOrCreateKeyPair)
+    if (!keyPair) {
+      await generateNewKeyPair();
+    }
+
+    // Экспортируем публичный ключ — только x, y, kty, crv (без d)
+    const pubJwk = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+    const publicJwk = { kty: pubJwk.kty, crv: pubJwk.crv, x: pubJwk.x, y: pubJwk.y };
+
+    const header = { alg: 'ES256', typ: 'dpop+jwt', jwk: publicJwk };
+
+    // jti — randomBytes(16).toString('base64url') как в generate-dpop.js
+    const jtiBytes = crypto.getRandomValues(new Uint8Array(16));
+    const jti = base64url(jtiBytes);
+
+    const payload = {
+      jti,
+      htm: method,
+      htu: stripQuery(htu),
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    // ath — base64url SHA-256 hash access token (как в generate-dpop.js)
+    if (accessTokenVal) {
+      payload.ath = await hashToken(accessTokenVal);
+    }
+
+    // Подписываем ES256
+    const headerB64  = base64url(new TextEncoder().encode(JSON.stringify(header)));
+    const payloadB64 = base64url(new TextEncoder().encode(JSON.stringify(payload)));
+    const signingInput = `${headerB64}.${payloadB64}`;
+
+    const sigBuf = await crypto.subtle.sign(
+      { name: 'ECDSA', hash: 'SHA-256' },
+      keyPair.privateKey,
+      new TextEncoder().encode(signingInput)
+    );
+
+    const proof = `${signingInput}.${base64url(sigBuf)}`;
+    currentProof = proof;
+
+    document.getElementById('proof-output').textContent = proof;
+    document.getElementById('result-card').style.display = 'block';
+    document.getElementById('decoded-header').textContent  = JSON.stringify(header, null, 2);
+    document.getElementById('decoded-payload').textContent = JSON.stringify(payload, null, 2);
+
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'Сгенерировать DPoP Proof';
+  }
+}
+
+function copyProof() {
+  if (!currentProof) return;
+  navigator.clipboard.writeText(currentProof).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ скопировано';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'копировать'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
